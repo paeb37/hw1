@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
 
+using UnityEngine.SceneManagement;
+
 public class PlayerController : MonoBehaviour
 {
 
@@ -59,7 +61,7 @@ public class PlayerController : MonoBehaviour
         }
 
         SetCountText();
-        // winTextObject.SetActive(false);
+        winTextObject.SetActive(false);
     }
 
     /*
@@ -239,15 +241,52 @@ public class PlayerController : MonoBehaviour
     //     }
     // }
 
-    // don't need this for now
-    // but can use later?
-    // private void OnTriggerEnter(Collider other) {
+    // detect collisions with the goal area, to move to next level
+    private void OnTriggerEnter(Collider other) {
 
-    //     if (other.gameObject.CompareTag("Pickup")) {
-    //         other.gameObject.SetActive(false);
+        Debug.Log($"Triggered with: {other.gameObject.name}, Tag: {other.gameObject.tag}");
 
-    //         count += 1;
-    //         SetCountText();
-    //     }
-    // }
+        if (other.gameObject.CompareTag("Goal")) {
+            Debug.Log("Goal trigger detected!");
+            LoadNext();
+        }
+    }
+
+    private void LoadNext()
+    {
+        int currentSceneIdx = SceneManager.GetActiveScene().buildIndex;
+        int nextSceneIdx = currentSceneIdx + 1;
+
+        // int totalScenes = SceneManager.sceneCountInBuildSettings;
+        // Debug.Log($"Current Scene Index: {currentSceneIdx}");
+        // Debug.Log($"Next Scene Index: {nextSceneIdx}");
+        // Debug.Log($"Total Scenes in Build: {totalScenes}");
+
+        // make sure we don't exceed the total number of scenes
+        if (nextSceneIdx < SceneManager.sceneCountInBuildSettings)
+        {
+            SceneManager.LoadSceneAsync(nextSceneIdx);
+            // use Async for better performance
+            // StartCoroutine(LoadSceneAsync(nextSceneIdx));
+        }
+        else
+        {
+            Debug.Log("Game completed!");
+            // Can load a game completion scene here later
+        }
+    }
+
+    private IEnumerator LoadSceneAsync(int sceneIndex) {
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneIndex);
+        
+        // Wait until the scene is fully loaded
+        while (!asyncLoad.isDone)
+        {
+            // You could add a loading progress bar here using asyncLoad.progress
+            Debug.Log($"Loading progress: {asyncLoad.progress * 100}%");
+            yield return null;
+        }
+    }
+
+
 }

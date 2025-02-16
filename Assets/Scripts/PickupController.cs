@@ -9,23 +9,24 @@ public class PickupController : MonoBehaviour
     private AudioSource audioSource;
     private GameObject player;
 
-    // the objects will turn a darker shade when the player is near it
-    // to signal
-
     // just for the color stuff
-    private Color originalColor;
-    private Color normalColor;
-    private Color highlightColor;
-    private Renderer objectRenderer;
+    // private Color originalColor;
+    // private Color normalColor;
+    // private Color highlightColor;
+    // private Renderer objectRenderer;
     
     // Start is called before the first frame update
     void Start()
     {
         player = GameObject.FindGameObjectWithTag("Player");
-        objectRenderer = GetComponent<Renderer>();
 
         // set up audio
         audioSource = GetComponent<AudioSource>();
+
+        /**
+        objectRenderer = GetComponent<Renderer>();
+
+        // for now, just keep the color the same to make rendering faster
 
         // make new material
         // NOTE: this asset is using a shader so a bit more complicated
@@ -61,6 +62,7 @@ public class PickupController : MonoBehaviour
 
         // set the starting color as transparent
         objectRenderer.material.color = normalColor;
+        */
     }
 
     // Update is called once per frame
@@ -77,15 +79,15 @@ public class PickupController : MonoBehaviour
             if (!audioSource.isPlaying)
                 audioSource.Play();
 
-            objectRenderer.material.color = highlightColor; // Change to highlight color
-            Debug.Log($"Player in range (distance: {distance}). Setting highlight color.");
+            // objectRenderer.material.color = highlightColor; // Change to highlight color
+            // Debug.Log($"Player in range (distance: {distance}). Setting highlight color.");
         }
         else
         {
             // visualEffect.SetActive(false);
             audioSource.Stop();
 
-            objectRenderer.material.color = normalColor; // Change back to normal color
+            // objectRenderer.material.color = normalColor; // Change back to normal color
         }
     }
 }
