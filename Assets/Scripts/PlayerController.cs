@@ -28,12 +28,19 @@ public class PlayerController : MonoBehaviour
     private bool onGround; // to prevent double jump in air
     public float jumpForce = 5f; // can set in editor
     public LayerMask groundLayer; // set this in editor to detect ground
+    
 
-
+    // for the player tapping on collectibles part
+    private Camera mainCamera;
+    public float collectDistance = 5f; // Distance within which items can be collected
+    public ParticleSystem collectEffect; // Assign in inspector
+    
 
     // Start is called before the first frame update
     void Start()
-    {
+    {   
+        mainCamera = Camera.main;
+
         rb = GetComponent<Rigidbody>();
         count = 0;
         onGround = true;
@@ -51,7 +58,7 @@ public class PlayerController : MonoBehaviour
             Debug.LogWarning("AttitudeSensor not found");
         }
 
-        // SetCountText();
+        SetCountText();
         // winTextObject.SetActive(false);
     }
 
@@ -92,23 +99,94 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    /*
     void SetCountText() {
         countText.text = "Count: " + count.ToString();
 
-        if (count >= 8) {
-            winTextObject.SetActive(true);
-            winTextObject.GetComponent<TextMeshProUGUI>().text = "You Win!";
+        // if (count >= 8) {
+        //     winTextObject.SetActive(true);
+        //     winTextObject.GetComponent<TextMeshProUGUI>().text = "You Win!";
 
-            Destroy(GameObject.FindGameObjectWithTag("Enemy"));
+        //     Destroy(GameObject.FindGameObjectWithTag("Enemy"));
 
+        // }
+    }
+
+    // Use Update() when frame rate doesn't matter
+    // So no physics stuff here
+    void Update()
+    {
+        // Check for mouse click in editor or touch on mobile
+        #if UNITY_EDITOR
+        if (Input.GetMouseButtonDown(0)) // Left mouse click
+        {
+            CheckForCollectible(Input.mousePosition);
+        }
+        #else
+        if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
+        {
+            CheckForCollectible(Input.GetTouch(0).position);
+        }
+        #endif
+    }
+
+    // checks if there is a collectible where the person clicked
+    void CheckForCollectible(Vector3 screenPosition)
+    {
+        Ray ray = mainCamera.ScreenPointToRay(screenPosition);
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit))
+        {
+            // Check if we hit a collectible
+            if (hit.collider.CompareTag("Pickup"))
+            {
+                // Check if player is close enough
+                float distanceToCollectible = Vector3.Distance(transform.position, hit.collider.transform.position);
+                
+                if (distanceToCollectible <= collectDistance)
+                {
+                    // Collect the item
+                    CollectItem(hit.collider.gameObject);
+                }
+                else
+                {
+                    Debug.Log("Too far to collect!");
+                }
+            }
         }
     }
-    */
+
+    void CollectItem(GameObject collectible)
+    {
+        // Spawn particle effect if assigned
+        if (collectEffect != null)
+        {
+            ParticleSystem effect = Instantiate(collectEffect, collectible.transform.position, Quaternion.identity);
+            effect.Play();
+            Destroy(effect.gameObject, effect.main.duration); // Clean up after effect finishes
+        }
+
+        // Play audio if the collectible has an AudioSource
+        AudioSource audio = collectible.GetComponent<AudioSource>();
+        if (audio != null)
+        {
+            // Detach audio source before destroying collectible
+            audio.transform.SetParent(null);
+            audio.Play();
+            Destroy(audio.gameObject, audio.clip.length);
+        }
+
+        // Increment counter and update UI
+        count += 1;
+        SetCountText();
+
+        // Disable the collectible
+        collectible.SetActive(false);
+    }
 
     void FixedUpdate()
     {   
-        CheckGrounded(); // do this first
+        CheckGrounded(); // do this first for jumping
 
 
         Vector3 force = Vector3.zero; // 0,0,0
@@ -121,7 +199,7 @@ public class PlayerController : MonoBehaviour
             float verticalInput = Input.GetAxis("Vertical");
             force = new Vector3(horizontalInput, 0, verticalInput);
             
-            Debug.Log("Editor Controls - WASD/Arrows: " + force);
+            // Debug.Log("Editor Controls - WASD/Arrows: " + force);
         #else
 
         // Debug.LogWarning("ENTERED THE CORRECT PLACE HEHE!");
@@ -152,27 +230,24 @@ public class PlayerController : MonoBehaviour
         rb.AddForce(force * speed);
     }
 
-    private void OnCollisionEnter(Collision collision) {
-        if (collision.gameObject.CompareTag("Enemy")) {
-            Destroy(gameObject); // gameObject is current object
+    // private void OnCollisionEnter(Collision collision) {
+    //     if (collision.gameObject.CompareTag("Enemy")) {
+    //         Destroy(gameObject); // gameObject is current object
 
-            winTextObject.gameObject.SetActive(true);
-            winTextObject.GetComponent<TextMeshProUGUI>().text = "You Lose!";
-        }
-    }
+    //         winTextObject.gameObject.SetActive(true);
+    //         winTextObject.GetComponent<TextMeshProUGUI>().text = "You Lose!";
+    //     }
+    // }
 
-    private void OnTriggerEnter(Collider other) {
+    // don't need this for now
+    // but can use later?
+    // private void OnTriggerEnter(Collider other) {
 
-        if (other.gameObject.CompareTag("Pickup")) {
-            other.gameObject.SetActive(false);
+    //     if (other.gameObject.CompareTag("Pickup")) {
+    //         other.gameObject.SetActive(false);
 
-            count += 1;
-            // SetCountText();
-        }
-
-
-        
-
-
-    }
+    //         count += 1;
+    //         SetCountText();
+    //     }
+    // }
 }
