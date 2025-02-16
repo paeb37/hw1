@@ -18,7 +18,10 @@ public class PlayerController : MonoBehaviour
 
     public float speed = 0; // set in the editor
     public TextMeshProUGUI countText;
+
+    // need the game object so we can set active / hide it
     public GameObject winTextObject;
+    public TextMeshProUGUI winTextRaw;
     
     private AttitudeSensor attitudeSensor;
     // private Quaternion initialRotation;
@@ -62,6 +65,7 @@ public class PlayerController : MonoBehaviour
 
         SetCountText();
         winTextObject.SetActive(false);
+        // winTextRaw = winTextObject.GetComponent<TextMeshProUGUI>();
     }
 
     /*
@@ -265,7 +269,7 @@ public class PlayerController : MonoBehaviour
         // make sure we don't exceed the total number of scenes
         if (nextSceneIdx < SceneManager.sceneCountInBuildSettings)
         {
-            SceneManager.LoadSceneAsync(nextSceneIdx);
+            StartCoroutine(LoadSceneWithProgress(nextSceneIdx));
             // use Async for better performance
             // StartCoroutine(LoadSceneAsync(nextSceneIdx));
         }
@@ -276,14 +280,22 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private IEnumerator LoadSceneAsync(int sceneIndex) {
+    private IEnumerator LoadSceneWithProgress(int sceneIndex) {
+        winTextObject.SetActive(true); // show win screen
+        
         AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneIndex);
         
         // Wait until the scene is fully loaded
         while (!asyncLoad.isDone)
         {
-            // You could add a loading progress bar here using asyncLoad.progress
-            Debug.Log($"Loading progress: {asyncLoad.progress * 100}%");
+            
+            float progress = Mathf.Clamp01(asyncLoad.progress / 0.9f); // easy convert for 0-1 range
+            
+            if (winTextRaw != null)
+            {
+                winTextRaw.text = $"Complete! Loading next... {progress * 100:F0}%";
+            }
+            
             yield return null;
         }
     }
