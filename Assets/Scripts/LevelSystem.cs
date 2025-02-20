@@ -22,7 +22,15 @@ public class LevelSystem : MonoBehaviour
         startButton.gameObject.SetActive(true);
         levelSelectPanel.SetActive(false);
 
-        startButton.onClick.AddListener(ShowLevelSelect);
+        // add null checks in case
+        if (startButton != null)
+        {
+            startButton.onClick.AddListener(ShowLevelSelect);
+        }
+        else
+        {
+            Debug.LogError("Start Button not assigned in inspector!");
+        }
         UpdateLevelButtons();
     }
 
@@ -49,7 +57,17 @@ public class LevelSystem : MonoBehaviour
 
     void LoadLevel(int levelNum)
     {
-        SceneManager.LoadScene("L" + levelNum); // named L1, L2, L3
+        string sceneName = "L" + levelNum;
+
+        // null check
+        if (SceneManager.GetSceneByName(sceneName).IsValid())
+        {
+            SceneManager.LoadScene(sceneName);
+        }
+        else
+        {
+            Debug.LogError($"Scene {sceneName} is not in Build Settings!");
+        }
     }
 
     // to unlock levels (call this when a level is cleared)

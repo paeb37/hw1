@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class FallDetector : MonoBehaviour
 {
-    public Vector3 resetPosition; // set this in the Inspector
+    public Vector3 resetPosition; // set this in the Inspector to the top left
 
     private void OnTriggerEnter(Collider other)
     {

@@ -19,9 +19,19 @@ public class PickupController : MonoBehaviour
     void Start()
     {
         player = GameObject.FindGameObjectWithTag("Player");
+        if (player == null)
+        {
+            Debug.LogError("No GameObject with 'Player' tag found!");
+            // enabled = false; // Disable this component if player not found
+            return;
+        }
 
         // set up audio
         audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            Debug.LogWarning("No AudioSource component found on this GameObject!");
+        }
 
         /**
         objectRenderer = GetComponent<Renderer>();
