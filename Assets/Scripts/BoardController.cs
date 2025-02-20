@@ -177,11 +177,17 @@ public class BoardController : MonoBehaviour
         // Convert angles from [0,360] to [-180,180] range
         // Same as the manual case in Unity editor
         if (angles.x > 180f) angles.x -= 360f;
+        if (angles.y > 180f) angles.y -= 360f;
         if (angles.z > 180f) angles.z -= 360f;
 
+        angles.z -= 90f; // by default, Z is 90 for some reason
+
         // Clamp rotation to our maximum values
-        float tiltX = Mathf.Clamp(angles.x, -maxRotation, maxRotation);
-        float tiltZ = Mathf.Clamp(angles.z, -maxRotation, maxRotation);
+
+        // X: forward/back in Unity frame of ref
+        // Z: left/right
+        float tiltX = Mathf.Clamp(-angles.y, -maxRotation, maxRotation); // angles.x
+        float tiltZ = Mathf.Clamp(angles.x, -maxRotation, maxRotation); // angles.z
         
         // Apply the rotation (keeping Y rotation at 0)
         transform.localEulerAngles = new Vector3(tiltX, 0, tiltZ);
