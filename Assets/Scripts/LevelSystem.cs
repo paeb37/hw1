@@ -16,7 +16,7 @@ public class LevelSystem : MonoBehaviour
     public Button startButton;
     public GameObject levelSelectPanel;
     public Button[] levelButtons;
-    private int unlockedLevels = 1; // start with only one level unlocked
+    private int unlockedLevels; // track the number of levels unlocked
 
     // private float levelStartTime; // will update with each new level
     // private bool timerActive = false; // only start when level 1 starts
@@ -28,7 +28,8 @@ public class LevelSystem : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject); // don't get rid of it when switching scenes
-            unlockedLevels = PlayerPrefs.GetInt("UnlockedLevels", 1);
+            // unlockedLevels = PlayerPrefs.GetInt("UnlockedLevels", 1);
+            unlockedLevels = 1;
         }
         else
         {
@@ -44,8 +45,17 @@ public class LevelSystem : MonoBehaviour
         if (curBuildIdx == 0)
         {
             // note: player prefs stores data across scenes, as key value pair
-            unlockedLevels = PlayerPrefs.GetInt("UnlockedLevels", 1);
+            // unlockedLevels = PlayerPrefs.GetInt("UnlockedLevels", 1);
             
+            // since level system is persistent, we basically need to reassign the buttons and elements
+            // so their states are not carried over from last time
+            // Find and reassign references to UI elements
+            // startButton = GameObject.FindGameObjectWithTag("StartButton").GetComponent<Button>();
+            // levelSelectPanel = GameObject.FindGameObjectWithTag("LevelSelectPanel");
+            // levelButtons = levelSelectPanel.GetComponentsInChildren<Button>();
+
+
+
             startButton.gameObject.SetActive(true);
             levelSelectPanel.SetActive(false);
 
@@ -59,6 +69,13 @@ public class LevelSystem : MonoBehaviour
                 Debug.LogError("Start Button not assigned in inspector!");
             }
 
+            // by default, all level buttons are disabled
+            foreach (Button button in levelButtons)
+            {
+                button.interactable = false;
+            }
+
+            // this one will start by enabling level 1 and then keep going
             UpdateLevelButtons();
         }
     }
@@ -70,25 +87,34 @@ public class LevelSystem : MonoBehaviour
         levelSelectPanel.SetActive(true); // show level select
     }
 
-    // use a list of Button objects to keep track
-    // makes things easier
+    // updates the UI and interactability of the level buttons
+    // based on what levels are unlocked
     void UpdateLevelButtons()
-    {   
+    {      
+        // check if we have valid buttons first, prevent null error
+        if (levelButtons == null || levelButtons.Length == 0)
+        {
+            return;
+        }
+
         // nice way to do with for loop instead of setting manually in the editor
 
         for (int i = 0; i < levelButtons.Length; i++)
         {   
-
             // this loop keeps track of which ones are disabled or not
             int levelIndex = i;
+
             levelButtons[i].interactable = i < unlockedLevels; // basically if disabled or not
+            
+            Debug.Log($"Number of unlocked levels: {unlockedLevels}");
+
+            // click handler for button
             levelButtons[i].onClick.RemoveAllListeners();
             levelButtons[i].onClick.AddListener(() => SceneManager.LoadScene(levelIndex + 1)); // now when clicked, will call the load next level method
         }
     }
 
-    // to unlock levels (call this when a level is cleared)
-    // this is more of a numeric method
+    // this is called by VictoryScreen when the player beats level
     public void UnlockNextLevel()
     {
         if (unlockedLevels < levelButtons.Length)
@@ -96,8 +122,8 @@ public class LevelSystem : MonoBehaviour
             unlockedLevels++;
 
             // have to change the stored dict values as well
-            PlayerPrefs.SetInt("UnlockedLevels", unlockedLevels);
-            PlayerPrefs.Save();
+            // PlayerPrefs.SetInt("UnlockedLevels", unlockedLevels);
+            // PlayerPrefs.Save();
             UpdateLevelButtons();
         }
     }
