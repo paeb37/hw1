@@ -20,8 +20,8 @@ public class PlayerController : MonoBehaviour
     public TextMeshProUGUI countText;
 
     // need the game object so we can set active / hide it
-    public GameObject winTextObject;
-    public TextMeshProUGUI winTextRaw;
+    // public GameObject winTextObject;
+    // public TextMeshProUGUI winTextRaw;
 
     public float maxTiltAngle = 30f;
 
@@ -45,6 +45,16 @@ public class PlayerController : MonoBehaviour
     // private Vector3 gravityDirection = Vector3.down;
 
     // Start is called before the first frame update
+
+    // for managing the canvas stuff
+    public Canvas gameplayCanvas; // Main canvas with gameplay UI
+    public Canvas victoryCanvas;  // Victory screen canvas
+    public TextMeshProUGUI completionTimeText;
+    public TextMeshProUGUI collectiblesText;
+    public GameObject nextLevelButton;
+    public GameObject restartLevelButton;
+    public GameObject startScreenButton;
+
     void Start()
     {   
         mainCamera = Camera.main;
@@ -53,24 +63,11 @@ public class PlayerController : MonoBehaviour
         count = 0;
         onGround = true;
 
-        
-
         SetCountText();
-        winTextObject.SetActive(false);
-        // winTextRaw = winTextObject.GetComponent<TextMeshProUGUI>();
+        // winTextObject.SetActive(false);
     }
 
-    /*
-    void OnMove(InputValue movementValue) 
-    {
-        Vector2 movementVector = movementValue.Get<Vector2>(); 
-        movementX = movementVector.x;
-        movementY = movementVector.y;
-
-    }
-    */
-
-    // New: Method to check if we're grounded
+    // check if we're grounded (to prevent double jump)
     private void CheckGrounded()
     {
         // cast sphere below the player
@@ -91,8 +88,7 @@ public class PlayerController : MonoBehaviour
     {
         if (onGround)
         {
-            // this is upward force
-            // use impulse to make it sudden
+            // this is upward force, use impulse to make it sudden
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
         }
     }
@@ -109,11 +105,11 @@ public class PlayerController : MonoBehaviour
         // }
     }
 
-    // Use Update() when frame rate doesn't matter
-    // So no physics stuff here
+    // Use Update() just to track clicks
+    // Here, frame rate doesn't matter (no physics)
     void Update()
     {
-        // Check for mouse click in editor or touch on mobile
+        /*** on unity editor!!! so using mouse ****/
         #if UNITY_EDITOR
         // if (Input.GetMouseButtonDown(0)) // Left mouse click
         // {
@@ -125,15 +121,14 @@ public class PlayerController : MonoBehaviour
         //     CheckForCollectible(Input.GetTouch(0).position);
         // }
 
-        // Check for mouse click in editor
-
+        // checks for mouse click in editor
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
             CheckForCollectible(Mouse.current.position.ReadValue());
         }
-        #else
 
-        // this may cause issues later
+        /*** on phone!!!!! using touch ****/
+        #else
         if (Touchscreen.current != null && Touchscreen.current.primaryTouch.phase.ReadValue() == UnityEngine.InputSystem.TouchPhase.Began)
         {
             CheckForCollectible(Touchscreen.current.primaryTouch.position.ReadValue());
@@ -143,6 +138,7 @@ public class PlayerController : MonoBehaviour
     }
 
     // checks if there is a collectible where the person clicked
+    // uses raycasting
     void CheckForCollectible(Vector3 screenPosition)
     {
         Ray ray = mainCamera.ScreenPointToRay(screenPosition);
@@ -150,16 +146,14 @@ public class PlayerController : MonoBehaviour
 
         if (Physics.Raycast(ray, out hit))
         {
-            // Check if we hit a collectible
-            if (hit.collider.CompareTag("Pickup"))
+            if (hit.collider.CompareTag("Pickup")) // hit collectible
             {
-                // Check if player is close enough
                 float distanceToCollectible = Vector3.Distance(transform.position, hit.collider.transform.position);
                 
+                // close enough
                 if (distanceToCollectible <= collectDistance)
                 {
-                    // Collect the item
-                    CollectItem(hit.collider.gameObject);
+                    HandleCollect(hit.collider.gameObject);
                 }
                 else
                 {
@@ -169,9 +163,11 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void CollectItem(GameObject collectible)
+    // this does particle system, plays audio
+    // and updates the count + UI
+    void HandleCollect(GameObject collectible)
     {
-        // Spawn particle effect if assigned
+        // particle effect
         if (collectEffect != null)
         {
             ParticleSystem effect = Instantiate(collectEffect, collectible.transform.position, Quaternion.identity);
@@ -179,21 +175,19 @@ public class PlayerController : MonoBehaviour
             Destroy(effect.gameObject, effect.main.duration); // Clean up after effect finishes
         }
 
-        // Play audio if the collectible has an AudioSource
+        // play audio
         AudioSource audio = collectible.GetComponent<AudioSource>();
         if (audio != null)
         {
-            // Detach audio source before destroying collectible
             audio.transform.SetParent(null);
             audio.Play();
             Destroy(audio.gameObject, audio.clip.length);
         }
 
-        // Increment counter and update UI
         count += 1;
-        SetCountText();
+        SetCountText(); // updates the UI
 
-        // Disable the collectible
+        // disable the collectible now
         collectible.SetActive(false);
     }
 
@@ -226,34 +220,54 @@ public class PlayerController : MonoBehaviour
 
         if (other.gameObject.CompareTag("Goal")) {
             Debug.Log("Goal trigger detected!");
-            LoadNext();
+
+            // load victory screen
+            VictoryScreen victoryScreen = FindObjectOfType<VictoryScreen>();
+            if (victoryScreen != null)
+            {
+                victoryScreen.ShowVictoryScreen(count); // have to pass in the collectibles count
+            }
         }
     }
+    
+    // load victory screen
+    // private void LoadVictory()
+    // {
+    //     // int curSceneIdx = SceneManager.GetActiveScene().buildIndex;
+    //     // int nextSceneIdx = curSceneIdx + 1;
 
-    private void LoadNext()
-    {
-        int currentSceneIdx = SceneManager.GetActiveScene().buildIndex;
-        int nextSceneIdx = currentSceneIdx + 1;
+    //     VictoryScreen victoryScreen = FindObjectOfType<VictoryScreen>();
+    //     if (victoryScreen != null)
+    //     {
+    //         victoryScreen.ShowVictoryScreen(count); // have to pass in the collectibles count
+    //     }
 
-        // int totalScenes = SceneManager.sceneCountInBuildSettings;
-        // Debug.Log($"Current Scene Index: {currentSceneIdx}");
-        // Debug.Log($"Next Scene Index: {nextSceneIdx}");
-        // Debug.Log($"Total Scenes in Build: {totalScenes}");
+    //     // int totalScenes = SceneManager.sceneCountInBuildSettings;
+    //     // Debug.Log($"Current Scene Index: {currentSceneIdx}");
+    //     // Debug.Log($"Next Scene Index: {nextSceneIdx}");
+    //     // Debug.Log($"Total Scenes in Build: {totalScenes}");
 
-        // make sure we don't exceed the total number of scenes
-        if (nextSceneIdx < SceneManager.sceneCountInBuildSettings)
-        {
-            StartCoroutine(LoadSceneWithProgress(nextSceneIdx));
-            // use Async for better performance
-            // StartCoroutine(LoadSceneAsync(nextSceneIdx));
-        }
-        else
-        {
-            Debug.Log("Game completed!");
-            // Can load a game completion scene here later
-        }
-    }
+    //     // make sure we don't exceed the total number of scenes
+    //     // so if on the last level, just go back to home page?
 
+    //     // we need to show a victory screen as well
+    //     // when it hits the goal, just immediately show the victory screen
+
+    //     // 
+    //     // if (nextSceneIdx < SceneManager.sceneCountInBuildSettings)
+    //     // {
+    //     //     StartCoroutine(LoadSceneWithProgress(nextSceneIdx));
+    //     //     // use Async for better performance
+    //     //     // StartCoroutine(LoadSceneAsync(nextSceneIdx));
+    //     // }
+    //     // else
+    //     // {
+    //     //     Debug.Log("Game completed!");
+    //     //     // Can load a game completion scene here later
+    //     // }
+    // }
+
+    /*
     private IEnumerator LoadSceneWithProgress(int sceneIndex) {
         winTextObject.SetActive(true); // show win screen
         
@@ -273,6 +287,7 @@ public class PlayerController : MonoBehaviour
             yield return null;
         }
     }
+    */
 
 
 }
