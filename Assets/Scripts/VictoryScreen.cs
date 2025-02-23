@@ -58,6 +58,7 @@ public class VictoryScreen : MonoBehaviour
         // not on last level
         if (curSceneIdx < totalScenes - 1) { // works for build idx 0, 1, 2
             nextLevelButton.gameObject.SetActive(true);
+            GameData.UnlockedLevels++;
         }
         else {
             nextLevelButton.gameObject.SetActive(false);
@@ -65,12 +66,12 @@ public class VictoryScreen : MonoBehaviour
 
         // use level system controller to unlock next level
         // need this for data persistence
-        LevelSystem levelSystem = FindObjectOfType<LevelSystem>();
+        // LevelSystem levelSystem = FindObjectOfType<LevelSystem>();
         
-        if (levelSystem != null)
-        {
-            levelSystem.UnlockNextLevel();
-        }
+        // if (levelSystem != null)
+        // {
+        //     levelSystem.UnlockNextLevel();
+        // }
     }
 
     // called upon button click for next level

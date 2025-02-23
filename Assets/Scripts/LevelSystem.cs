@@ -10,7 +10,7 @@ public class LevelSystem : MonoBehaviour
 
     // also use level system to keep track of the timer as well
 
-    public static LevelSystem Instance { get; private set; }
+    // public static LevelSystem Instance { get; private set; }
 
     // assign the public vars in the Inspector
     public Button startButton;
@@ -22,28 +22,39 @@ public class LevelSystem : MonoBehaviour
     // private bool timerActive = false; // only start when level 1 starts
     // ignoring the paused time
 
-    void Awake()
-    {
-        if (Instance == null) // if no instance of level system exists yet
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject); // don't get rid of it when switching scenes
-            // unlockedLevels = PlayerPrefs.GetInt("UnlockedLevels", 1);
-            unlockedLevels = 1;
-        }
-        else
-        {
-            Destroy(gameObject); // means there is already one so destroy new one created
-        }
-    }
+    // the only thing that really need to be persistent is the unlocked levels
+
+    // it's easier to just pass this variable between calls
+    // rather than have it persist
+
+    // void Awake()
+    // {
+    //     if (Instance == null) // if no instance of level system exists yet
+    //     {
+    //         Instance = this;
+    //         DontDestroyOnLoad(gameObject); // don't get rid of it when switching scenes
+    //         // unlockedLevels = PlayerPrefs.GetInt("UnlockedLevels", 1);
+    //         unlockedLevels = 1;
+    //     }
+    //     else
+    //     {
+    //         Destroy(gameObject); // means there is already one so destroy new one created
+    //     }
+    // }
 
     void Start()
     {   
-        // only need to do this in the start scene (build idx 0)
-        int curBuildIdx = SceneManager.GetActiveScene().buildIndex;
+        unlockedLevels = GameData.UnlockedLevels;
+
+        Debug.Log($"Start: UnlockedLevels = {unlockedLevels}, GameData.UnlockedLevels = {GameData.UnlockedLevels}");
+
+
+
+        // // only need to do this in the start scene (build idx 0)
+        // int curBuildIdx = SceneManager.GetActiveScene().buildIndex;
         
-        if (curBuildIdx == 0)
-        {
+        // if (curBuildIdx == 0)
+        // {
             // note: player prefs stores data across scenes, as key value pair
             // unlockedLevels = PlayerPrefs.GetInt("UnlockedLevels", 1);
             
@@ -77,7 +88,7 @@ public class LevelSystem : MonoBehaviour
 
             // this one will start by enabling level 1 and then keep going
             UpdateLevelButtons();
-        }
+        // }
     }
 
     // just to show the levels after the user clicks start
@@ -110,21 +121,33 @@ public class LevelSystem : MonoBehaviour
 
             // click handler for button
             levelButtons[i].onClick.RemoveAllListeners();
+
+            // this is what handles the scene loading
             levelButtons[i].onClick.AddListener(() => SceneManager.LoadScene(levelIndex + 1)); // now when clicked, will call the load next level method
         }
     }
 
     // this is called by VictoryScreen when the player beats level
-    public void UnlockNextLevel()
-    {
-        if (unlockedLevels < levelButtons.Length)
-        {
-            unlockedLevels++;
+    // public void UnlockNextLevel()
+    // {
+    //     if (unlockedLevels < levelButtons.Length)
+    //     {
+    //         unlockedLevels++; // this is what unlocks the next level
+    //         GameData.UnlockedLevels = unlockedLevels;
 
-            // have to change the stored dict values as well
-            // PlayerPrefs.SetInt("UnlockedLevels", unlockedLevels);
-            // PlayerPrefs.Save();
-            UpdateLevelButtons();
-        }
-    }
+    //         Debug.Log($"After unlock: UnlockedLevels = {unlockedLevels}, GameData.UnlockedLevels = {GameData.UnlockedLevels}");
+
+    //         // have to change the stored dict values as well
+    //         // PlayerPrefs.SetInt("UnlockedLevels", unlockedLevels);
+    //         // PlayerPrefs.Save();
+    //         UpdateLevelButtons();
+    //     }
+
+    //     // reset the screen too so the buttons don't overlap in UI
+    //     // if (startButton != null && levelSelectPanel != null)
+    //     // {
+    //     //     startButton.gameObject.SetActive(true);
+    //     //     levelSelectPanel.SetActive(false);
+    //     // }
+    // }
 }
