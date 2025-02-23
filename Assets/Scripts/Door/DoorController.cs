@@ -4,27 +4,28 @@ using UnityEngine;
 
 public class DoorController : MonoBehaviour
 {
-    public Vector3 openPosition = new Vector3(0, 3, 0); // edit this
+    public float openAngle = 90f; // Angle to rotate when opening
     public float openSpeed = 2f;
-    private Vector3 closedPosition;
+    private Quaternion closedRotation;
     private bool shouldOpen = false;
 
     void Start()
     {
-        closedPosition = transform.position;
+        closedRotation = transform.rotation;
     }
 
     void Update()
     {
         if (shouldOpen)
         {
-            // Smoothly move the door to open position
-            transform.position = Vector3.Lerp(transform.position, closedPosition + openPosition, Time.deltaTime * openSpeed);
+            // Smoothly rotate the door around the Y axis
+            Quaternion targetRotation = closedRotation * Quaternion.Euler(0, -openAngle, 0);
+            transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, Time.deltaTime * openSpeed);
         }
         else
         {
-            // Smoothly move the door to closed position
-            transform.position = Vector3.Lerp(transform.position, closedPosition, Time.deltaTime * openSpeed);
+            // Smoothly rotate back to closed position
+            transform.rotation = Quaternion.Lerp(transform.rotation, closedRotation, Time.deltaTime * openSpeed);
         }
     }
 
