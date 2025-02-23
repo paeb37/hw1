@@ -48,47 +48,27 @@ public class LevelSystem : MonoBehaviour
 
         Debug.Log($"Start: UnlockedLevels = {unlockedLevels}, GameData.UnlockedLevels = {GameData.UnlockedLevels}");
 
+        startButton.gameObject.SetActive(true);
+        levelSelectPanel.SetActive(false);
 
+        // add null checks in case
+        if (startButton != null)
+        {
+            startButton.onClick.AddListener(ShowLevelSelect);
+        }
+        else
+        {
+            Debug.LogError("Start Button not assigned in inspector!");
+        }
 
-        // // only need to do this in the start scene (build idx 0)
-        // int curBuildIdx = SceneManager.GetActiveScene().buildIndex;
-        
-        // if (curBuildIdx == 0)
+        // // by default, all level buttons are disabled
+        // foreach (Button button in levelButtons)
         // {
-            // note: player prefs stores data across scenes, as key value pair
-            // unlockedLevels = PlayerPrefs.GetInt("UnlockedLevels", 1);
-            
-            // since level system is persistent, we basically need to reassign the buttons and elements
-            // so their states are not carried over from last time
-            // Find and reassign references to UI elements
-            // startButton = GameObject.FindGameObjectWithTag("StartButton").GetComponent<Button>();
-            // levelSelectPanel = GameObject.FindGameObjectWithTag("LevelSelectPanel");
-            // levelButtons = levelSelectPanel.GetComponentsInChildren<Button>();
-
-
-
-            startButton.gameObject.SetActive(true);
-            levelSelectPanel.SetActive(false);
-
-            // add null checks in case
-            if (startButton != null)
-            {
-                startButton.onClick.AddListener(ShowLevelSelect);
-            }
-            else
-            {
-                Debug.LogError("Start Button not assigned in inspector!");
-            }
-
-            // by default, all level buttons are disabled
-            foreach (Button button in levelButtons)
-            {
-                button.interactable = false;
-            }
-
-            // this one will start by enabling level 1 and then keep going
-            UpdateLevelButtons();
+        //     button.interactable = false;
         // }
+
+        // this one will start by enabling level 1 and then keep going
+        UpdateLevelButtons();
     }
 
     // just to show the levels after the user clicks start
@@ -117,11 +97,12 @@ public class LevelSystem : MonoBehaviour
 
             levelButtons[i].interactable = i < unlockedLevels; // basically if disabled or not
             
-            Debug.Log($"Number of unlocked levels: {unlockedLevels}");
+            // Debug.Log($"Number of unlocked levels: {unlockedLevels}");
+            Debug.Log($"Button {i} interactable: {levelButtons[i].interactable}, UnlockedLevels: {GameData.UnlockedLevels}");
 
             // click handler for button
             levelButtons[i].onClick.RemoveAllListeners();
-
+            
             // this is what handles the scene loading
             levelButtons[i].onClick.AddListener(() => SceneManager.LoadScene(levelIndex + 1)); // now when clicked, will call the load next level method
         }
