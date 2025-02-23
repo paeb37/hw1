@@ -34,7 +34,7 @@ public class PlayerController : MonoBehaviour
 
     // for the player tapping on collectibles part
     private Camera mainCamera;
-    public float collectDistance = 5f; // Distance within which items can be collected
+    private float collectDistance;
     public ParticleSystem collectEffect; // Assign in inspector
 
 
@@ -47,17 +47,43 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
 
     // for managing the canvas stuff
-    public Canvas gameplayCanvas; // Main canvas with gameplay UI
-    public Canvas victoryCanvas;  // Victory screen canvas
-    public TextMeshProUGUI completionTimeText;
-    public TextMeshProUGUI collectiblesText;
-    public GameObject nextLevelButton;
-    public GameObject restartLevelButton;
-    public GameObject startScreenButton;
+    // public Canvas gameplayCanvas; // Main canvas with gameplay UI
+    // public Canvas victoryCanvas;  // Victory screen canvas
+    // public TextMeshProUGUI completionTimeText;
+    // public TextMeshProUGUI collectiblesText;
+    // public GameObject nextLevelButton;
+    // public GameObject restartLevelButton;
+    // public GameObject startScreenButton;
+
+    /** AUDIO !!!! ***/
+    // ball roll
+    private AudioSource rollingAudioSource; // this is a custom unity class for manipulating sound
+    public AudioClip rollingSound; // in inspector
+    private float minVelocityToPlaySound = 0.1f; // minimum velocity to trigger sound
+
+    // ball jump
+    private AudioSource jumpAudioSource;
+    public AudioClip jumpSound;
+
+    // collectible
+    public AudioClip collectSound;
+    // public AudioClip inRangeSound;
+    // private bool isInRange = false;
+    
+    // goal reached
+    public AudioClip goalSound;
+
+    // need this so that other sounds can't play after you win
+    private bool hasWon = false;
+
+    public bool won() {
+        return hasWon;
+    }
 
     void Start()
     {   
         mainCamera = Camera.main;
+        collectDistance = GameData.collectDistance;
 
         rb = GetComponent<Rigidbody>();
         count = 0;
@@ -65,6 +91,18 @@ public class PlayerController : MonoBehaviour
 
         SetCountText();
         // winTextObject.SetActive(false);
+
+        // audio roll init
+        rollingAudioSource = gameObject.AddComponent<AudioSource>();
+        rollingAudioSource.clip = rollingSound;
+        rollingAudioSource.loop = true; // so it loops while rolling
+        rollingAudioSource.playOnAwake = false;
+        rollingAudioSource.volume = 1.0f;  // init vol is max
+
+        // jump init
+        jumpAudioSource = gameObject.AddComponent<AudioSource>();
+        jumpAudioSource.playOnAwake = false;
+        jumpAudioSource.volume = 1.0f;
     }
 
     // check if we're grounded (to prevent double jump)
@@ -85,10 +123,19 @@ public class PlayerController : MonoBehaviour
 
     // DO NOT double jump
     public void Jump()
-    {
+    {      
+        // do not do anything if you done
+        if (hasWon) return;
+
         if (onGround)
-        {
-            // this is upward force, use impulse to make it sudden
+        {   
+            // sound first
+            if (jumpSound != null)
+            {
+                jumpAudioSource.PlayOneShot(jumpSound);
+            }
+
+            // upward force, using impulse to make it sudden
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
         }
     }
@@ -153,10 +200,21 @@ public class PlayerController : MonoBehaviour
                 // close enough
                 if (distanceToCollectible <= collectDistance)
                 {
+                    // the in-range sound is handled by the pickup controller script
+                    // because we want to play it whenever, not just when the player clicks
+
+                    // if (!isInRange && inRangeSound != null)
+                    // {   
+                    //     // this method uses AudioSource class instead of making an instance
+                    //     AudioSource.PlayClipAtPoint(inRangeSound, hit.collider.transform.position, 0.5f);
+                    // }
+                    // isInRange = true;
+
                     HandleCollect(hit.collider.gameObject);
                 }
                 else
                 {
+                    // isInRange = false;
                     Debug.Log("Too far to collect!");
                 }
             }
@@ -166,7 +224,9 @@ public class PlayerController : MonoBehaviour
     // this does particle system, plays audio
     // and updates the count + UI
     void HandleCollect(GameObject collectible)
-    {
+    {   
+        if (hasWon) return;
+
         // particle effect
         if (collectEffect != null)
         {
@@ -175,14 +235,19 @@ public class PlayerController : MonoBehaviour
             Destroy(effect.gameObject, effect.main.duration); // Clean up after effect finishes
         }
 
-        // play audio
-        AudioSource audio = collectible.GetComponent<AudioSource>();
-        if (audio != null)
+        // play collect audio
+        if (collectSound != null)
         {
-            audio.transform.SetParent(null);
-            audio.Play();
-            Destroy(audio.gameObject, audio.clip.length);
+            AudioSource.PlayClipAtPoint(collectSound, collectible.transform.position);
         }
+
+        // AudioSource audio = collectible.GetComponent<AudioSource>();
+        // if (audio != null)
+        // {
+        //     audio.transform.SetParent(null);
+        //     audio.Play();
+        //     Destroy(audio.gameObject, audio.clip.length);
+        // }
 
         count += 1;
         SetCountText(); // updates the UI
@@ -202,6 +267,23 @@ public class PlayerController : MonoBehaviour
         
         // // Apply additional downward force to keep the ball on the board
         // rb.AddForce(gravityDirection * additionalGravity, ForceMode.Acceleration);
+
+        // ball rolling sound
+        // only trigger when it's on the ground and rolling
+        if (!hasWon && rb.velocity.magnitude > minVelocityToPlaySound && onGround)
+        {
+            if (!rollingAudioSource.isPlaying)
+            {
+                rollingAudioSource.Play();
+            }
+
+            // higher velocity means louder sound
+            rollingAudioSource.volume = Mathf.Clamp01(rb.velocity.magnitude / 5f);
+        }
+        else if (rollingAudioSource.isPlaying)
+        {
+            rollingAudioSource.Stop(); // do not play if conditions are not met
+        }
     }
 
     // private void OnCollisionEnter(Collision collision) {
@@ -213,13 +295,23 @@ public class PlayerController : MonoBehaviour
     //     }
     // }
 
+    /** GOALLL!!!! **///
     // detect collisions with the goal area, to move to next level
     private void OnTriggerEnter(Collider other) {
 
         Debug.Log($"Triggered with: {other.gameObject.name}, Tag: {other.gameObject.tag}");
 
         if (other.gameObject.CompareTag("Goal")) {
+
+            hasWon = true;
+
             Debug.Log("Goal trigger detected!");
+
+            // play goal reached sound
+            if (goalSound != null)
+            {
+                AudioSource.PlayClipAtPoint(goalSound, transform.position, 1.0f);
+            }
 
             // load victory screen
             VictoryScreen victoryScreen = FindObjectOfType<VictoryScreen>();

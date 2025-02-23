@@ -6,4 +6,7 @@ using UnityEngine;
 public static class GameData
 {
     public static int UnlockedLevels { get; set; } = 1;
+
+    // hold other constants across classes
+    public const float collectDistance = 2f;
 }

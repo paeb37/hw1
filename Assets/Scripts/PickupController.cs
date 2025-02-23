@@ -5,15 +5,9 @@ using UnityEngine;
 public class PickupController : MonoBehaviour
 {   
     // for pickup object behavior
-    public float detectionDistance = 5f; // can change this as needed in inspector
+    public float detectionDistance = 2f; // can change this as needed in inspector
     private AudioSource audioSource;
     private GameObject player;
-
-    // just for the color stuff
-    // private Color originalColor;
-    // private Color normalColor;
-    // private Color highlightColor;
-    // private Renderer objectRenderer;
     
     // Start is called before the first frame update
     void Start()
@@ -26,12 +20,14 @@ public class PickupController : MonoBehaviour
             return;
         }
 
-        // set up audio
+        // set up in inspector
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
         {
             Debug.LogWarning("No AudioSource component found on this GameObject!");
         }
+
+        audioSource.playOnAwake = false;
 
         /**
         objectRenderer = GetComponent<Renderer>();
@@ -83,7 +79,8 @@ public class PickupController : MonoBehaviour
 
         // if player is certain distance away, need to play a sound
         float distance = Vector3.Distance(transform.position, player.transform.position);
-        if (distance <= detectionDistance)
+        
+        if (distance <= GameData.collectDistance)
         {
             // visualEffect.SetActive(true);
             if (!audioSource.isPlaying)
