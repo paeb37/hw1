@@ -35,7 +35,7 @@ public class CameraController : MonoBehaviour
         // Add debug log to check the scene index
         // Debug.Log("Current Scene: " + SceneManager.GetActiveScene().name + ", Index: " + curSceneIdx);
         
-        if (curSceneIdx == 100) // L3 - CHANGE THIS LATER TO 3
+        if (curSceneIdx == 3) // L3 - CHANGE THIS LATER TO 3
         {
             // Follow player in level 3
             transform.position = player.transform.position + offset;
