@@ -101,8 +101,8 @@ public class BoardController : MonoBehaviour
     {   
         // force landscape mode for the maze
         // so that phone doesn't rotate and make it portrait
-        Screen.orientation = ScreenOrientation.LandscapeLeft;
-
+        // Screen.orientation = ScreenOrientation.LandscapeLeft;
+        
         // Force landscape mode
         // Screen.orientation = ScreenOrientation.LandscapeLeft;
 
