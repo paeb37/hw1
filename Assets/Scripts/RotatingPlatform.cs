@@ -6,15 +6,16 @@ public class RotatingPlatform : MonoBehaviour
 {
     public float rotationSpeed = 30f;
     public Transform orbitingPlatform;
-    public float orbitRadius = 2f; // Add this in inspector
+    public float orbitRadius = 2f;
     
     private float currentAngle;
     private Quaternion initialPlatformRotation;
 
     void Start()
     {
-        // Store initial configuration
+        // init setup
         initialPlatformRotation = orbitingPlatform.rotation;
+        
         currentAngle = Vector3.SignedAngle(
             Vector3.forward,
             orbitingPlatform.position - transform.position,
@@ -24,13 +25,12 @@ public class RotatingPlatform : MonoBehaviour
 
     void Update()
     {
-        // Rotate central disc
+        // rotate central disc first
         transform.Rotate(Vector3.up * rotationSpeed * Time.deltaTime);
         
-        // Update orbiting platform
         if (orbitingPlatform != null)
         {
-            // Calculate new position
+            // new pos
             currentAngle += rotationSpeed * Time.deltaTime;
             float rad = currentAngle * Mathf.Deg2Rad;
             
@@ -42,34 +42,8 @@ public class RotatingPlatform : MonoBehaviour
             
             orbitingPlatform.position = transform.position + offset;
             
-            // Maintain original rotation
+            // keep original rot
             orbitingPlatform.rotation = initialPlatformRotation;
         }
     }
 }
-
-
-// public class RotatingPlatform : MonoBehaviour
-// {
-//     public float rotationSpeed = 30f; // deg / sec
-//     public Transform orbitingPlatform; // this is the platform
-    
-//     void Update()
-//     {
-//         // rotates the central disc
-//         transform.Rotate(Vector3.up * rotationSpeed * Time.deltaTime);
-        
-//         // make sure to keep orbiting platform's orientation fixed, while rotating position only
-//         if (orbitingPlatform != null)
-//         {
-//             orbitingPlatform.RotateAround(
-//                 transform.position, // this is center disc
-//                 Vector3.up, // y axis
-//                 rotationSpeed * Time.deltaTime // rotation amount
-//             );
-            
-//             // the orientation is fixed (relative to world space)
-//             orbitingPlatform.rotation = Quaternion.Euler(0, 0, 0);
-//         }
-//     }
-// }

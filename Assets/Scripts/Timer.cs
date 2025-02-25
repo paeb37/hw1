@@ -7,7 +7,6 @@ public class Timer : MonoBehaviour
     
     private float levelStartTime;
     private bool timerActive = false;
-    private float currentTime = 0f;
     private float elapsedTime;
 
     void Start()
@@ -33,7 +32,6 @@ public class Timer : MonoBehaviour
     public void StopTimer()
     {
         timerActive = false;
-        // so now currentTime will hold the final time
     }
 
     public float GetElapsedTime()

@@ -5,7 +5,6 @@ using UnityEngine;
 public class PickupController : MonoBehaviour
 {   
     // for pickup object behavior
-    public float detectionDistance = 2f; // can change this as needed in inspector
     private AudioSource audioSource;
     private GameObject player;
     
@@ -16,7 +15,6 @@ public class PickupController : MonoBehaviour
         if (player == null)
         {
             Debug.LogError("No GameObject with 'Player' tag found!");
-            // enabled = false; // Disable this component if player not found
             return;
         }
 
@@ -28,47 +26,6 @@ public class PickupController : MonoBehaviour
         }
 
         audioSource.playOnAwake = false;
-
-        /**
-        objectRenderer = GetComponent<Renderer>();
-
-        // for now, just keep the color the same to make rendering faster
-
-        // make new material
-        // NOTE: this asset is using a shader so a bit more complicated
-        Material newMaterial = new Material(Shader.Find("Standard"));
-        newMaterial.mainTexture = objectRenderer.material.mainTexture; // keep texture
-
-        // we have to edit all these fields as part of the shader script
-        // for transparency mode
-        newMaterial.SetInt("_Mode", 3); // Transparent mode
-        newMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-        newMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-        newMaterial.SetInt("_ZWrite", 0);
-        newMaterial.DisableKeyword("_ALPHATEST_ON");
-        newMaterial.EnableKeyword("_ALPHABLEND_ON");
-        newMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-        newMaterial.renderQueue = 3000;
-
-        objectRenderer.material = newMaterial;
-
-        // Store the original color
-        originalColor = objectRenderer.material.color;
-        // Debug.Log($"Original color: R:{originalColor.r}, G:{originalColor.g}, B:{originalColor.b}, A:{originalColor.a}");
-        
-        // semi-transparent version
-        normalColor = new Color(
-            originalColor.r * 0.7f,
-            originalColor.g * 0.7f,
-            originalColor.b * 0.7f,
-            0.7f // more transparent
-        );
-        
-        highlightColor = originalColor;
-
-        // set the starting color as transparent
-        objectRenderer.material.color = normalColor;
-        */
     }
 
     // Update is called once per frame
@@ -82,19 +39,12 @@ public class PickupController : MonoBehaviour
         
         if (distance <= GameData.collectDistance)
         {
-            // visualEffect.SetActive(true);
             if (!audioSource.isPlaying)
                 audioSource.Play();
-
-            // objectRenderer.material.color = highlightColor; // Change to highlight color
-            // Debug.Log($"Player in range (distance: {distance}). Setting highlight color.");
         }
         else
         {
-            // visualEffect.SetActive(false);
             audioSource.Stop();
-
-            // objectRenderer.material.color = normalColor; // Change back to normal color
         }
     }
 }

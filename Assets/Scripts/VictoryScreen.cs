@@ -15,15 +15,6 @@ public class VictoryScreen : MonoBehaviour
     public Button restartButton;
     public Button startMenuButton;
 
-    // this is set once each new level starts
-    // private float levelStartTime;
-
-    // call this when we start a new level
-    // public void StartTimer()
-    // {
-    //     levelStartTime = Time.time;
-    // }
-
     void Start()
     {   
         victoryCanvas.enabled = false; // start as disabled
@@ -63,15 +54,6 @@ public class VictoryScreen : MonoBehaviour
         else {
             nextLevelButton.gameObject.SetActive(false);
         }
-
-        // use level system controller to unlock next level
-        // need this for data persistence
-        // LevelSystem levelSystem = FindObjectOfType<LevelSystem>();
-        
-        // if (levelSystem != null)
-        // {
-        //     levelSystem.UnlockNextLevel();
-        // }
     }
 
     // called upon button click for next level

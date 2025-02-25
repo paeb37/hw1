@@ -5,7 +5,7 @@ public class WallCollisionSound : MonoBehaviour
     private AudioSource audioSource;
     public AudioClip collisionSound;
     public float minCollisionVelocity = 0.5f;
-    public float volumeMultiplier = 1f; // edit if needed
+    public float volumeMultiplier = 1f; // to adjust later
     
     void Start()
     {
